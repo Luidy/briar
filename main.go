@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"runtime"
+	"ges/config"
 )
 
 const (
@@ -33,5 +34,6 @@ func init() {
 }
 
 func main() {
-	fmt.Println(banner)
+	ges := config.Ges
+	fmt.Println(banner,	ges)
 }

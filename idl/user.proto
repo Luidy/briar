@@ -3,7 +3,11 @@ option go_package = "./model";
 
 package model;
 
-message User {
+message UserInfo {
     int32 id = 1;
     string name = 2;
+}
+
+service User {
+    rpc RegistUser(UserInfo) returns (UserInfo) {}
 }

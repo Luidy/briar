@@ -10,5 +10,7 @@ else
 	$Q cd $(BASE)/idl && \
 	protoc -I. \
 	--go_out=../model \
-	--go_opt=paths=source_relative *.proto
+	--go_opt=paths=source_relative \
+	--go-grpc_out=../model \
+	--go-grpc_opt=require_unimplemented_servers=false,paths=source_relative *.proto
 endif

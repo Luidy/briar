@@ -1,4 +1,7 @@
 BASE ?= $(CURDIR)
+GOENV ?= GOOS=linux
+GOBUILD = $(GOENV) go
+
 export GO111MODULE=on
 
 .PHONY: proto
@@ -14,3 +17,8 @@ else
 	--go-grpc_out=../model \
 	--go-grpc_opt=require_unimplemented_servers=false,paths=source_relative *.proto
 endif
+
+.PHONY: build
+build:
+	$(info build ges)
+	cd $(BASE) && $(GOBUILD) build -o $(BASE)/bin/ges

@@ -1,0 +1,9 @@
+version: "3"
+services:
+  mysql:
+    image: mysql:latest
+  
+  ges:
+    build: .
+    ports: 
+    - 10720:10720

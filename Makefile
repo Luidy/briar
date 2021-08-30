@@ -1,5 +1,5 @@
 BASE ?= $(CURDIR)
-GOENV ?= GOOS=linux
+GOENV ?= GOOS=darwin
 GOBUILD = $(GOENV) go
 
 export GO111MODULE=on
@@ -12,9 +12,8 @@ else
 	$(info gen file from .proto)
 	$Q cd $(BASE)/idl && \
 	protoc -I. \
-	--go_out=../model \
+	--go_out=../idl \
 	--go_opt=paths=source_relative \
-	--go-grpc_out=../model \
 	--go-grpc_opt=require_unimplemented_servers=false,paths=source_relative *.proto
 endif
 

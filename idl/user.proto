@@ -1,13 +1,18 @@
 syntax = "proto3";
-option go_package = "./model";
+package idl;
 
-package model;
-
-message UserInfo {
-    int32 id = 1;
-    string name = 2;
-}
+option go_package = "./idl";
 
 service User {
-    rpc RegistUser(UserInfo) returns (UserInfo) {}
+  rpc Echo(EchoRequest) returns (EchoResponse) {
+  }
 }
+
+message EchoRequest {
+  string input = 1;
+}
+
+message EchoResponse{
+  string output = 1;
+}
+

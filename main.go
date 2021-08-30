@@ -1,37 +1,29 @@
 package main
 
 import (
+	"briar/config"
+	"briar/db"
+	"briar/server"
+	"context"
 	"fmt"
-	"ges/config"
-	"log"
+	"github.com/sirupsen/logrus"
+	"google.golang.org/grpc"
 	"net"
 	"os"
+	"os/signal"
 	"runtime"
-
-	"github.com/spf13/viper"
-	"google.golang.org/grpc"
+	"syscall"
 )
 
 const (
 	banner = "\n" +
-
-		"        GGGGGGGGGGGGGEEEEEEEEEEEEEEEEEEEEEE   SSSSSSSSSSSSSSS   \n" +
-		"     GGG::::::::::::GE::::::::::::::::::::E SS:::::::::::::::S  \n" +
-		"   GG:::::::::::::::GE::::::::::::::::::::ES:::::SSSSSS::::::S  \n" +
-		"  G:::::GGGGGGGG::::GEE::::::EEEEEEEEE::::ES:::::S     SSSSSSS  \n" +
-		" G:::::G       GGGGGG  E:::::E       EEEEEES:::::S              \n" +
-		"G:::::G                E:::::E             S:::::S              \n" +
-		"G:::::G                E::::::EEEEEEEEEE    S::::SSSS           \n" +
-		"G:::::G    GGGGGGGGGG  E:::::::::::::::E     SS::::::SSSSS      \n" +
-		"G:::::G    G::::::::G  E:::::::::::::::E       SSS::::::::SS    \n" +
-		"G:::::G    GGGGG::::G  E::::::EEEEEEEEEE          SSSSSS::::S   \n" +
-		"G:::::G        G::::G  E:::::E                         S:::::S  \n" +
-		" G:::::G       G::::G  E:::::E       EEEEEE            S:::::S  \n" +
-		"  G:::::GGGGGGGG::::GEE::::::EEEEEEEE:::::ESSSSSSS     S:::::S  \n" +
-		"   GG:::::::::::::::GE::::::::::::::::::::ES::::::SSSSSS:::::S  \n" +
-		"     GGG::::::GGG:::GE::::::::::::::::::::ES:::::::::::::::SS   \n" +
-		"        GGGGGG   GGGGEEEEEEEEEEEEEEEEEEEEEE SSSSSSSSSSSSSSS   \n\n" +
-		"=> Starting gRPC server %s\n\n"
+		"#####  #####  #   ##   ##### \n" +
+		"#    # #    # #  #  #  #    #  \n" +
+		"#####  #    # # #    # #    #  \n" +
+		"#    # #####  # ###### ##### \n" +
+		"#    # #    # # #    # #    # \n\n" +
+		"###### #    # # #    # #    # \n\n" +
+		"=> Starting briar server %s\n\n"
 )
 
 func init() {
@@ -40,28 +32,50 @@ func init() {
 }
 
 func main() {
-	ges := config.Ges
-	g := grpcInit()
-	startServer(ges, g)
-}
+	ctx := context.Background()
 
-func grpcInit() (g *grpc.Server) {
-	g = grpc.NewServer()
-	return g
-}
+	logrus.SetFormatter(&logrus.JSONFormatter{})
+	log := logrus.StandardLogger()
 
-func startServer(ges *viper.Viper, g *grpc.Server) {
-	address := fmt.Sprintf("0.0.0.0:%d", ges.GetInt("port"))
-	fmt.Printf(banner, address)
+	setting := config.NewSetting()
 
-	l, err := net.Listen("tcp", address)
+	database := db.InitDB(db.NewSetting(
+		setting.DBHost,
+		setting.DBPort,
+		setting.DBUser,
+		setting.DBPassword,
+		setting.DBName))
+
+	defer func() {
+		if err := database.Close(); err != nil {
+			log.Error(err)
+		}
+	}()
+
+	cfg := config.NewConfig(setting, database)
+
+	server, err := server.NewServer(ctx, cfg)
 	if err != nil {
-		log.Println("End to bind for gRPC server", "err", err)
-		os.Exit(1)
-	}
-	if err := g.Serve(l); err != nil {
-		log.Println("End gRPC server", "err", err)
-		os.Exit(1)
+		log.Fatal(err)
 	}
 
+	go func() {
+		l, err := net.Listen("tcp", ":"+setting.GRPCPort)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		fmt.Printf(banner, fmt.Sprintf("%s:%s", setting.Host, setting.GRPCPort))
+		if err := server.Serve(l); err != nil && err != grpc.ErrServerStopped {
+			log.Fatal(err)
+		}
+	}()
+
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+
+	<-quit
+
+	log.Info("Stopping user server")
+	server.GracefulStop()
 }

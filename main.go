@@ -4,7 +4,6 @@ import (
 	"briar/config"
 	"briar/db"
 	"briar/server"
-	"context"
 	"fmt"
 	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
@@ -32,7 +31,7 @@ func init() {
 }
 
 func main() {
-	ctx := context.Background()
+	//ctx := context.Background()
 
 	logrus.SetFormatter(&logrus.JSONFormatter{})
 	log := logrus.StandardLogger()
@@ -54,7 +53,7 @@ func main() {
 
 	cfg := config.NewConfig(setting, database)
 
-	server, err := server.NewServer(ctx, cfg)
+	server, err := server.InitGRPCServer(cfg)
 	if err != nil {
 		log.Fatal(err)
 	}

@@ -1,9 +1,9 @@
 syntax = "proto3";
 package idl;
 
-option go_package = "./idl";
+option go_package = "../idl";
 
-service User {
+service Briar {
   rpc Echo(EchoRequest) returns (EchoResponse) {
   }
 }

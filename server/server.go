@@ -8,26 +8,27 @@ import (
 	"google.golang.org/grpc/reflection"
 )
 
-type UserServer struct {
+type BriarServer struct {
 	cfg config.Config
 }
 
-func NewUserServer(cfg config.Config) (*UserServer, error) {
-	return &UserServer{cfg: cfg}, nil
+func initBriarServer(cfg config.Config) *BriarServer {
+	return &BriarServer{
+		cfg: cfg,
+	}
 }
 
-func (u *UserServer) Echo(ctx context.Context, req *idl.EchoRequest) (*idl.EchoResponse, error) {
+var _ idl.BriarServer = (*BriarServer)(nil)
+
+func (s *BriarServer) Echo(ctx context.Context, req *idl.EchoRequest) (*idl.EchoResponse, error) {
 	return nil, nil
 }
 
-func NewServer(ctx context.Context, cfg config.Config) (*grpc.Server, error) {
+func InitGRPCServer(cfg config.Config) (*grpc.Server, error) {
 	grpcServer := grpc.NewServer()
-	userServer, err := NewUserServer(cfg)
-	if err != nil {
-		return nil, err
-	}
+	briarServer := initBriarServer(cfg)
 
-	idl.RegisterUserServer(grpcServer, userServer)
+	idl.RegisterBriarServer(grpcServer, briarServer)
 	reflection.Register(grpcServer)
 
 	return grpcServer, nil

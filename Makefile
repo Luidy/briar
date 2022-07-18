@@ -10,11 +10,14 @@ ifeq ($(shell which protoc),)
 	$(info no protoc complier. install protoc)
 else
 	$(info gen file from .proto)
+	go get -u github.com/golang/protobuf/{proto,protoc-gen-go}
+	export PATH=$PATH:~/go/bin
 	$Q cd $(BASE)/idl && \
 	protoc -I. \
 	--go_out=../idl \
+	--go-grpc_out=require_unimplemented_servers=false:. \
 	--go_opt=paths=source_relative \
-	--go-grpc_opt=require_unimplemented_servers=false,paths=source_relative *.proto
+	*.proto
 endif
 
 .PHONY: build

@@ -9,11 +9,11 @@ import (
 )
 
 type Setting struct {
-	Host string
-	Port int
-	User string
+	Host     string
+	Port     int
+	User     string
 	Password string
-	DBName string
+	DBName   string
 }
 
 const driverName = "mysql"
@@ -41,12 +41,12 @@ func NewSetting(
 	host string,
 	port int,
 	user, password, dbname string,
-	) Setting {
+) Setting {
 	return Setting{
-		Host: host,
-		Port: port,
-		User: user,
+		Host:     host,
+		Port:     port,
+		User:     user,
 		Password: password,
-		DBName: dbname,
+		DBName:   dbname,
 	}
 }
